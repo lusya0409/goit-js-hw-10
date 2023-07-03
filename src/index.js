@@ -1,7 +1,60 @@
-// 'api_key=live_DjX7ZaLbQUvAneYUcJq6j8upL76nJFzn6j1gyGmihfQw9rcXCpAK4iPLqb2VnXfK';
-import axios from 'axios';
+import './styles.css';
+import API from './cat-api';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
-axios.defaults.headers.common['x-api-key'] =
-  'live_DjX7ZaLbQUvAneYUcJq6j8upL76nJFzn6j1gyGmihfQw9rcXCpAK4iPLqb2VnXfK';
+const select = document.querySelector('.breed-select');
+const divCat = document.querySelector('.cat-info');
 
-// https://api.thecatapi.com/v1/images/search?limit=10&breed_ids=beng&api_key=REPLACE_ME
+select.addEventListener('change', onSelect);
+
+function onSelect(evt) {
+  openLoader();
+  const catId = evt.target.value;
+  renderCatCard(catId);
+}
+API.fetchBreeds().then(renderSelectData).catch(onFetchError);
+
+function openLoader() {
+  document.querySelector('.loader-container').style.display = 'flex';
+}
+function closeLoader() {
+  document.querySelector('.loader-container').style.display = 'none';
+}
+
+function renderSelectData(resp) {
+  select.innerHTML = createMarkupForSelect(resp.data);
+  renderCatCard(resp.data[0].id);
+  console.log(resp.data);
+}
+
+function createMarkupForSelect(arr) {
+  return arr
+    .map(({ id, name }) => `<option value="${id}">${name}</option>`)
+    .join('');
+}
+function renderCatCard(id) {
+  API.fetchCatByBreed(id)
+    .then(resp => {
+      divCat.innerHTML = createMarkupCatCard(resp.data);
+      closeLoader();
+    })
+    .catch(onFetchError);
+}
+
+function createMarkupCatCard(arr) {
+  const cat = arr[0].breeds[0];
+  return `<img src="${arr[0].url}" alt="${cat.name}" width="300" height="auto" />
+  <div class="info-container">
+       <h2>${cat.name}</h2>
+      <p>${cat.description}</p>
+      <p><b>Temperament: </b>${cat.temperament}</p>
+  </div>`;
+}
+
+function onFetchError(error) {
+  const errorEl = document.querySelector('.error');
+  Notify.failure(errorEl.textContent, {
+    timeout: 60000,
+  });
+  console.log(error);
+}
