@@ -23,7 +23,9 @@ function closeLoader() {
 
 function renderSelectData(resp) {
   select.innerHTML = createMarkupForSelect(resp.data);
-  renderCatCard(resp.data[0].id);
+  closeLoader();
+
+  // renderCatCard(resp.data[0].id);
   console.log(resp.data);
 }
 
@@ -54,7 +56,7 @@ function createMarkupCatCard(arr) {
 function onFetchError(error) {
   const errorEl = document.querySelector('.error');
   Notify.failure(errorEl.textContent, {
-    timeout: 60000,
+    timeout: 1000,
   });
   console.log(error);
 }
